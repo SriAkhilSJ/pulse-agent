@@ -13,11 +13,11 @@ export { AgentEventStream } from './protocols/ag-ui/stream.js';
 export { createSSEServer, handleAgentStream } from './server/sse.js';
 export { validate } from './validation/ast-validator.js';
 export { DockerSandbox, isDockerAvailable } from './sandbox/docker-sandbox.js';
+export { Tracer, tracer } from './observability/tracer.js';
+export { SemanticCache } from './cache/semantic-cache.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';
-export { SemanticCache } from './context/cache/semantic-cache.js';
-export { Tracer, tracer } from './observability/tracer.js';
 export { config } from './config.js';
 
 // Tools

@@ -11,6 +11,17 @@ import { SingleCallAgent, getConfigFromEnv } from '../agent/single-call/single-c
 import { runMultiCallAgent } from '../agent/graph/multi-call.js';
 import type { RouteContext, SingleCallConfig } from '@pulse-ide/shared';
 import { RouteType } from '@pulse-ide/shared';
+import { tracer } from '../observability/tracer.js';
+import { SemanticCache } from '../cache/semantic-cache.js';
+
+// Singleton cache instance
+let cache: SemanticCache | null = null;
+function getCache(): SemanticCache {
+  if (!cache) {
+    cache = new SemanticCache();
+  }
+  return cache;
+}
 
 // ---------------------------------------------------------------------------
 // Parse JSON body from request
@@ -80,6 +91,16 @@ export async function handleAgentStream(
   stream.pipeToSSE(res);
 
   try {
+    // Check semantic cache first
+    const cached = await getCache().lookup(request.query);
+    if (cached) {
+      stream.stateUpdate('cache-hit', { similarity: '>' + String((getCache() as any).config.similarityThreshold) });
+      stream.textDelta(cached.response);
+      stream.done('Served from cache');
+      stream.close();
+      return;
+    }
+
     // Route the query
     const routeContext: RouteContext = {
       query: request.query,
@@ -93,20 +114,29 @@ export async function handleAgentStream(
 
     const decision = route(routeContext);
 
+    // Start trace
+    tracer.startTrace(request.query, decision.type, 'deepseek-r1:14b', request.sessionId || 'default');
+    tracer.logStep({ type: 'plan', name: 'route', input: request.query, output: decision, durationMs: 0 });
+
     stream.stateUpdate('routing', { route: decision.type, reason: decision.reason });
 
     if (decision.type === RouteType.SINGLE_CALL) {
-      // Run single-call agent
       await runSingleCallAgent(request, stream);
     } else {
-      // Run multi-call agent
       await runMultiCallAgentSSE(request, stream);
+    }
+
+    // Store in cache and end trace
+    const trace = await tracer.endTrace(true);
+    if (trace) {
+      await getCache().store(request.query, `Completed via ${decision.type}`, decision.type);
     }
 
     if (!clientDisconnected) {
       stream.done(`Task completed via ${decision.type} route`);
     }
   } catch (err) {
+    await tracer.endTrace(false, err instanceof Error ? err.message : String(err));
     if (!clientDisconnected) {
       stream.error(err instanceof Error ? err.message : String(err));
     }

@@ -1,18 +1,19 @@
-interface TraceEntry {
-    id: string;
-    type: 'llm_call' | 'tool_call' | 'error' | 'info';
-    name: string;
-    duration?: number;
-    metadata?: Record<string, unknown>;
-    timestamp: number;
-}
+import type { Trace, StepTrace } from '@pulse-ide/shared';
 export declare class Tracer {
-    private entries;
-    private maxEntries;
-    trace(entry: Omit<TraceEntry, 'id' | 'timestamp'>): void;
-    getTraces(type?: string): TraceEntry[];
-    clear(): void;
+    private currentTrace;
+    private langSmithApiKey;
+    private langSmithEndpoint;
+    constructor();
+    /** Start a new trace */
+    startTrace(query: string, route: 'autocomplete' | 'single_call' | 'multi_call', model: string, sessionId: string): Trace;
+    /** Log a step */
+    logStep(step: StepTrace): void;
+    /** End the trace */
+    endTrace(success: boolean, error?: string): Promise<Trace | null>;
+    /** Get current trace */
+    getCurrentTrace(): Trace | null;
+    /** Send trace to LangSmith via raw HTTP */
+    private sendToLangSmith;
 }
 export declare const tracer: Tracer;
-export {};
 //# sourceMappingURL=tracer.d.ts.map

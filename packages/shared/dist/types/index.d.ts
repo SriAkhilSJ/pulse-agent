@@ -165,4 +165,6 @@ export type { ValidationError, ValidationResult as ASTValidationResult, Supporte
 export { getLanguageFromFilePath } from './validation.types';
 export type { SandboxConfig, SandboxResult } from './sandbox.types';
 export { getDefaultSandboxConfig, ALLOWED_COMMANDS, BLOCKED_PATTERNS } from './sandbox.types';
+export type { Trace, StepTrace, CachedResponse, CacheConfig } from './observability.types';
+export { getDefaultCacheConfig } from './observability.types';
 //# sourceMappingURL=index.d.ts.map

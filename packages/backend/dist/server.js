@@ -169,7 +169,7 @@ wss.on('connection', (ws) => {
                     const chat = event;
                     const sessionId = chat.sessionId || 'default';
                     const session = getOrCreateSession(sessionId);
-                    tracer_js_1.tracer.trace({ type: 'llm_call', name: 'chat', metadata: { sessionId } });
+                    tracer_js_1.tracer.startTrace(chat.text, 'multi_call', 'openrouter/owl-alpha', sessionId);
                     const result = await agent.chat(chat.text, session.messages, (step) => send(ws, { type: 'toolStep', step: { id: step.id, toolName: step.toolName, status: step.status, result: step.result, duration: step.duration }, requestId: chat.requestId }), (text) => send(ws, { type: 'thinking', text, requestId: chat.requestId }), (text) => send(ws, { type: 'textDelta', text, requestId: chat.requestId }), (text) => send(ws, { type: 'thinkingDelta', text, requestId: chat.requestId }));
                     session.messages.push({ role: 'user', content: chat.text });
                     session.messages.push({ role: 'assistant', content: result.response });

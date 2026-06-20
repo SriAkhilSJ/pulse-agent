@@ -162,7 +162,7 @@ wss.on('connection', (ws) => {
           const sessionId = chat.sessionId || 'default';
           const session = getOrCreateSession(sessionId);
 
-          tracer.trace({ type: 'llm_call', name: 'chat', metadata: { sessionId } });
+          tracer.startTrace(chat.text, 'multi_call', 'openrouter/owl-alpha', sessionId);
 
           const result = await agent.chat(
             chat.text,
