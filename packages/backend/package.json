@@ -1,0 +1,26 @@
+{
+  "name": "@pulse-ide/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PulseCode AI Agent backend service",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch & node --watch dist/index.js",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@pulse-ide/shared": "workspace:*",
+    "ws": "^8.17.0",
+    "chokidar": "^3.6.0",
+    "better-sqlite3": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^18.19.0",
+    "typescript": "^5.4.0"
+  }
+}
