@@ -161,4 +161,6 @@ export type { ConversationMessage, CompressorConfig, CompressedSummary } from '.
 export { getDefaultCompressorConfig } from './compressor.types';
 export type { AgentEvent, AgentRunRequest, AgentRunResponse } from './ag-ui.types';
 export { SSE_HEADERS, formatSSE } from './ag-ui.types';
+export type { ValidationError, ValidationResult as ASTValidationResult, SupportedLanguage } from './validation.types';
+export { getLanguageFromFilePath } from './validation.types';
 //# sourceMappingURL=index.d.ts.map

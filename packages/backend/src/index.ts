@@ -11,6 +11,7 @@ export { callLLM, LLMError } from './agent/single-call/http-client.js';
 export { Compressor } from './agent/compressor/compressor.js';
 export { AgentEventStream } from './protocols/ag-ui/stream.js';
 export { createSSEServer, handleAgentStream } from './server/sse.js';
+export { validate } from './validation/ast-validator.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';
