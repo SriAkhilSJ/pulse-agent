@@ -153,4 +153,6 @@ export interface FileDiff {
     newContent: string;
     hunks: DiffHunk[];
 }
+export type { RouteContext, RouteDecision } from './router.types';
+export { RouteType } from './router.types';
 //# sourceMappingURL=index.d.ts.map

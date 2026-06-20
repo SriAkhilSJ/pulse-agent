@@ -163,3 +163,7 @@ export interface FileDiff {
   newContent: string;
   hunks: DiffHunk[];
 }
+
+// Re-export router types
+export type { RouteContext, RouteDecision } from './router.types';
+export { RouteType } from './router.types';

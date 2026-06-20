@@ -1,6 +1,7 @@
 export { Agent } from './agent.js';
 export { ToolRegistry, defineTool } from './tool-registry.js';
 export { Orchestrator, AGENT_TYPES } from './orchestrator.js';
+export { route } from './agent/router.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';
