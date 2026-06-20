@@ -1,0 +1,111 @@
+{
+  "name": "pulse-agent",
+  "version": "0.3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pulsecodeai/pulse-agent.git"
+  },
+  "engines": {
+    "vscode": "*"
+  },
+  "extensionKind": ["workspace"],
+  "enabledApiProposals": [
+    "chatParticipant",
+    "chatVariableResolver",
+    "chatProvider",
+    "inlineCompletionsAdditions",
+    "interactive",
+    "terminalDataWriteEvent",
+    "terminalExecuteCommandEvent",
+    "terminalSelection",
+    "resolvers",
+    "tunnelFactory",
+    "quickPickSortByLabel",
+    "ai",
+    "contribLabelFormatterWorkspaceTooltip",
+    "contribMenuBarHome",
+    "contribRemoteHelp",
+    "contribViewsRemote",
+    "scmHistoryProvider",
+    "quickDiffProvider",
+    "terminalQuickFixProvider"
+  ],
+  "activationEvents": ["*"],
+  "main": "./out/extension.js",
+  "browser": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pulse.openView",
+        "title": "PulseCode: Open Agent Chat"
+      },
+      {
+        "command": "pulse.switchMode",
+        "title": "PulseCode: Switch Mode"
+      },
+      {
+        "command": "pulse.openSettings",
+        "title": "PulseCode: Open Settings"
+      }
+    ],
+    "viewsContainers": {
+      "auxiliaryBar": [
+        {
+          "id": "pulsecode-agent",
+          "title": "PulseCode AI",
+          "icon": "resources/agent-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "pulsecode-agent": [
+        {
+          "id": "pulsecode.agent.main",
+          "name": "PulseCode AI Agent",
+          "type": "webview",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PulseCode AI",
+      "properties": {
+        "pulse.model": {
+          "type": "string",
+          "default": "openrouter/owl-alpha",
+          "description": "AI model to use"
+        },
+        "pulse.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the AI provider"
+        },
+        "pulse.provider": {
+          "type": "string",
+          "default": "openrouter",
+          "description": "AI provider (openrouter, nvidia, groq, custom)"
+        },
+        "pulse.defaultMode": {
+          "type": "string",
+          "default": "code",
+          "description": "Default agent mode (chat, code, plan)"
+        },
+        "pulse.streaming": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming responses"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node node_modules/typescript/bin/tsc -p ./ && node build-webview.js",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

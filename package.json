@@ -1,0 +1,233 @@
+{
+	"name": "pulse-agent",
+	"displayName": "PulseCode AI Agent",
+	"description": "Autonomous AI IDE agent with multi-agent orchestration, skills, MCP, context engine, and self-improvement.",
+	"version": "0.3.0",
+	"publisher": "pulsecode",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pulsecodeai/pulse-agent.git"
+	},
+	"bugs": {
+		"url": "https://github.com/pulsecodeai/pulse-agent/issues"
+	},
+	"homepage": "https://pulsecodeai.ai",
+	"engines": {
+		"vscode": "^1.80.0"
+	},
+	"categories": [
+		"AI",
+		"Machine Learning",
+		"Other"
+	],
+	"keywords": [
+		"ai",
+		"agent",
+		"pulsecode",
+		"autonomous",
+		"mcp",
+		"skills",
+		"context-engine"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "pulse.openView",
+				"title": "Pulse: Open Agent Chat"
+			},
+			{
+				"command": "pulse.clearHistory",
+				"title": "Pulse: Clear History"
+			},
+			{
+				"command": "pulse.createSkill",
+				"title": "Pulse: Create Skill"
+			},
+			{
+				"command": "pulse.startMcpServer",
+				"title": "Pulse: Start MCP Server"
+			},
+			{
+				"command": "pulse.stopMcpServer",
+				"title": "Pulse: Stop MCP Server"
+			},
+			{
+				"command": "pulse.runTest",
+				"title": "Pulse: Run Test Suite"
+			},
+			{
+				"command": "pulse.openSettings",
+				"title": "Pulse: Open Settings"
+			},
+			{
+				"command": "pulse.setApiKey",
+				"title": "Pulse: Set API Key"
+			},
+			{
+				"command": "pulse.setProvider",
+				"title": "Pulse: Set Provider"
+			},
+			{
+				"command": "pulse.searchSessions",
+				"title": "Pulse: Search Sessions"
+			},
+			{
+				"command": "pulse.recentSessions",
+				"title": "Pulse: Recent Sessions"
+			},
+			{
+				"command": "pulse.saveFact",
+				"title": "Pulse: Save Memory Fact"
+			},
+			{
+				"command": "pulse.showMemory",
+				"title": "Pulse: Show Memory"
+			},
+			{
+				"command": "pulse.clearMemory",
+				"title": "Pulse: Clear Memory"
+			},
+			{
+				"command": "pulse.setUserProfile",
+				"title": "Pulse: Set User Profile"
+			},
+			{
+				"command": "pulse.createRules",
+				"title": "Pulse: Create .pulserules"
+			},
+			{
+				"command": "pulse.switchMode",
+				"title": "Pulse: Switch Agent Mode"
+			},
+			{
+				"command": "pulse.toggleInline",
+				"title": "Pulse: Toggle Inline Suggestions"
+			}
+		],
+		"views": {
+			"pulsecode-agent": [
+				{
+					"id": "pulsecode.agent.main",
+					"name": "PulseCode AI Agent",
+					"type": "webview",
+					"icon": "resources/agent-icon.svg",
+					"canToggleVisibility": false,
+					"when": "true"
+				}
+			]
+		},
+		"configuration": {
+			"title": "PulseCode AI Agent",
+			"properties": {
+				"pulse.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable PulseCode AI Agent"
+				},
+				"pulse.model": {
+					"type": "string",
+					"default": "openrouter/owl-alpha",
+					"description": "Default model"
+				},
+				"pulse.subagentModel": {
+					"type": "string",
+					"default": "openrouter/owl-alpha",
+					"description": "Sub-agent model"
+				},
+				"pulse.maxCallsPerSession": {
+					"type": "number",
+					"default": 20,
+					"description": "Max API calls per session"
+				},
+				"pulse.debug": {
+					"type": "boolean",
+					"default": false,
+					"description": "Debug logging"
+				},
+				"pulse.defaultMode": {
+					"type": "string",
+					"default": "code",
+					"enum": [
+						"chat",
+						"code",
+						"plan"
+					],
+					"description": "Default agent mode"
+				},
+				"pulse.enableInlineSuggestions": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable ghost text completions"
+				},
+				"pulse.enableFlowState": {
+					"type": "boolean",
+					"default": true,
+					"description": "Track user actions for context"
+				},
+				"pulse.contextMaxFiles": {
+					"type": "number",
+					"default": 50000,
+					"description": "Max files to index"
+				}
+			}
+		},
+		"chatParticipants": [
+			{
+				"id": "pulsecode.pulse-agent",
+				"name": "pulsecode",
+				"fullName": "PulseCode AI",
+				"description": "PulseCode AI Agent — autonomous coding assistant",
+				"isSticky": true,
+				"commands": [
+					{
+						"name": "help",
+						"description": "Show available commands"
+					},
+					{
+						"name": "plan",
+						"description": "Create a plan before coding"
+					}
+				]
+			}
+		],
+		"viewsContainers": {
+			"secondarySidebar": [
+				{
+					"id": "pulsecode-agent",
+					"title": "PulseCode AI",
+					"icon": "resources/agent-icon.svg"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"compile": "node node_modules/typescript/bin/tsc -p ./ && node build-webview.js",
+		"watch": "tsc -watch -p ./",
+		"build:webview": "node build-webview.js",
+		"watch:webview": "node build-webview.js --watch",
+		"lint": "eslint src --ext ts",
+		"package": "vsce package",
+		"postinstall": "node -e \"try { require('playwright'); console.log('playwright OK'); } catch(e) { console.log('playwright not installed'); }\""
+	},
+	"devDependencies": {
+		"@types/node": "^18.19.130",
+		"@types/react": "^18.3.0",
+		"@types/react-dom": "^18.3.0",
+		"@types/vscode": "^1.80.0",
+		"esbuild": "^0.21.0",
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@nut-tree-fork/nut-js": "^4.2.6",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
+	},
+	"optionalDependencies": {
+		"playwright": "^1.40.0"
+	}
+}
