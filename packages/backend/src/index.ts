@@ -6,6 +6,8 @@ export { ToolRegistry, defineTool } from './tool-registry.js';
 export { Orchestrator, AGENT_TYPES } from './orchestrator.js';
 export { route } from './agent/router.js';
 export { runMultiCallAgent, createMultiCallAgent, validateOutput } from './agent/graph/multi-call.js';
+export { SingleCallAgent, getConfigFromEnv } from './agent/single-call/single-call.js';
+export { callLLM, LLMError } from './agent/single-call/http-client.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';
