@@ -14,10 +14,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.0",
+    "@langchain/langgraph": "^1.4.4",
+    "@langchain/openai": "^1.5.1",
     "@pulse-ide/shared": "workspace:*",
     "better-sqlite3": "^11.0.0",
     "chokidar": "^3.6.0",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",

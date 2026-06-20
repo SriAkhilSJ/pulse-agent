@@ -2,7 +2,7 @@
 // packages/backend/src/index.ts
 // Main entry point — re-exports all public API
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearChangeLog = exports.revertChangesTool = exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.tracer = exports.Tracer = exports.SemanticCache = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
+exports.clearChangeLog = exports.revertChangesTool = exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.tracer = exports.Tracer = exports.SemanticCache = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.validateOutput = exports.createMultiCallAgent = exports.runMultiCallAgent = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
 var agent_js_1 = require("./agent.js");
 Object.defineProperty(exports, "Agent", { enumerable: true, get: function () { return agent_js_1.Agent; } });
 var tool_registry_js_1 = require("./tool-registry.js");
@@ -13,6 +13,10 @@ Object.defineProperty(exports, "Orchestrator", { enumerable: true, get: function
 Object.defineProperty(exports, "AGENT_TYPES", { enumerable: true, get: function () { return orchestrator_js_1.AGENT_TYPES; } });
 var router_js_1 = require("./agent/router.js");
 Object.defineProperty(exports, "route", { enumerable: true, get: function () { return router_js_1.route; } });
+var multi_call_js_1 = require("./agent/graph/multi-call.js");
+Object.defineProperty(exports, "runMultiCallAgent", { enumerable: true, get: function () { return multi_call_js_1.runMultiCallAgent; } });
+Object.defineProperty(exports, "createMultiCallAgent", { enumerable: true, get: function () { return multi_call_js_1.createMultiCallAgent; } });
+Object.defineProperty(exports, "validateOutput", { enumerable: true, get: function () { return multi_call_js_1.validateOutput; } });
 var skills_loader_js_1 = require("./skills-loader.js");
 Object.defineProperty(exports, "SkillsLoader", { enumerable: true, get: function () { return skills_loader_js_1.SkillsLoader; } });
 var indexer_js_1 = require("./context/indexer.js");

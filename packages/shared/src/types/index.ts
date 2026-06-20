@@ -167,3 +167,6 @@ export interface FileDiff {
 // Re-export router types
 export type { RouteContext, RouteDecision } from './router.types';
 export { RouteType } from './router.types';
+
+// Re-export agent types
+export type { AgentState, AgentMessage, ToolResult, ValidationResult } from './agent.types';
