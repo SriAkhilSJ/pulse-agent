@@ -1,7 +1,7 @@
 "use strict";
 // Core message types for agent conversations
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDefaultCacheConfig = exports.BLOCKED_PATTERNS = exports.ALLOWED_COMMANDS = exports.getDefaultSandboxConfig = exports.getLanguageFromFilePath = exports.formatSSE = exports.SSE_HEADERS = exports.getDefaultCompressorConfig = exports.RouteType = void 0;
+exports.getDefaultCheckpointConfig = exports.getDefaultCacheConfig = exports.BLOCKED_PATTERNS = exports.ALLOWED_COMMANDS = exports.getDefaultSandboxConfig = exports.getLanguageFromFilePath = exports.formatSSE = exports.SSE_HEADERS = exports.getDefaultCompressorConfig = exports.RouteType = void 0;
 var router_types_1 = require("./router.types");
 Object.defineProperty(exports, "RouteType", { enumerable: true, get: function () { return router_types_1.RouteType; } });
 var compressor_types_1 = require("./compressor.types");
@@ -17,4 +17,6 @@ Object.defineProperty(exports, "ALLOWED_COMMANDS", { enumerable: true, get: func
 Object.defineProperty(exports, "BLOCKED_PATTERNS", { enumerable: true, get: function () { return sandbox_types_1.BLOCKED_PATTERNS; } });
 var observability_types_1 = require("./observability.types");
 Object.defineProperty(exports, "getDefaultCacheConfig", { enumerable: true, get: function () { return observability_types_1.getDefaultCacheConfig; } });
+var checkpoint_types_1 = require("./checkpoint.types");
+Object.defineProperty(exports, "getDefaultCheckpointConfig", { enumerable: true, get: function () { return checkpoint_types_1.getDefaultCheckpointConfig; } });
 //# sourceMappingURL=index.js.map

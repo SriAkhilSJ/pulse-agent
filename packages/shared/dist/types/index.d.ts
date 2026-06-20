@@ -167,4 +167,6 @@ export type { SandboxConfig, SandboxResult } from './sandbox.types';
 export { getDefaultSandboxConfig, ALLOWED_COMMANDS, BLOCKED_PATTERNS } from './sandbox.types';
 export type { Trace, StepTrace, CachedResponse, CacheConfig } from './observability.types';
 export { getDefaultCacheConfig } from './observability.types';
+export type { Checkpoint, CheckpointMessage, CheckpointFileChange, CheckpointConfig } from './checkpoint.types';
+export { getDefaultCheckpointConfig } from './checkpoint.types';
 //# sourceMappingURL=index.d.ts.map
