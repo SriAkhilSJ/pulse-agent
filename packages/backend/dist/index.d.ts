@@ -9,6 +9,7 @@ export { Compressor } from './agent/compressor/compressor.js';
 export { AgentEventStream } from './protocols/ag-ui/stream.js';
 export { createSSEServer, handleAgentStream } from './server/sse.js';
 export { validate } from './validation/ast-validator.js';
+export { DockerSandbox, isDockerAvailable } from './sandbox/docker-sandbox.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';

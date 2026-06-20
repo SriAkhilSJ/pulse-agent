@@ -163,4 +163,6 @@ export type { AgentEvent, AgentRunRequest, AgentRunResponse } from './ag-ui.type
 export { SSE_HEADERS, formatSSE } from './ag-ui.types';
 export type { ValidationError, ValidationResult as ASTValidationResult, SupportedLanguage } from './validation.types';
 export { getLanguageFromFilePath } from './validation.types';
+export type { SandboxConfig, SandboxResult } from './sandbox.types';
+export { getDefaultSandboxConfig, ALLOWED_COMMANDS, BLOCKED_PATTERNS } from './sandbox.types';
 //# sourceMappingURL=index.d.ts.map
