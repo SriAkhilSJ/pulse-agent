@@ -2,7 +2,7 @@
 // packages/backend/src/index.ts
 // Main entry point — re-exports all public API
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearChangeLog = exports.revertChangesTool = exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.tracer = exports.Tracer = exports.SemanticCache = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.Compressor = exports.LLMError = exports.callLLM = exports.getConfigFromEnv = exports.SingleCallAgent = exports.validateOutput = exports.createMultiCallAgent = exports.runMultiCallAgent = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
+exports.clearChangeLog = exports.revertChangesTool = exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.tracer = exports.Tracer = exports.SemanticCache = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.handleAgentStream = exports.createSSEServer = exports.AgentEventStream = exports.Compressor = exports.LLMError = exports.callLLM = exports.getConfigFromEnv = exports.SingleCallAgent = exports.validateOutput = exports.createMultiCallAgent = exports.runMultiCallAgent = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
 var agent_js_1 = require("./agent.js");
 Object.defineProperty(exports, "Agent", { enumerable: true, get: function () { return agent_js_1.Agent; } });
 var tool_registry_js_1 = require("./tool-registry.js");
@@ -25,6 +25,11 @@ Object.defineProperty(exports, "callLLM", { enumerable: true, get: function () {
 Object.defineProperty(exports, "LLMError", { enumerable: true, get: function () { return http_client_js_1.LLMError; } });
 var compressor_js_1 = require("./agent/compressor/compressor.js");
 Object.defineProperty(exports, "Compressor", { enumerable: true, get: function () { return compressor_js_1.Compressor; } });
+var stream_js_1 = require("./protocols/ag-ui/stream.js");
+Object.defineProperty(exports, "AgentEventStream", { enumerable: true, get: function () { return stream_js_1.AgentEventStream; } });
+var sse_js_1 = require("./server/sse.js");
+Object.defineProperty(exports, "createSSEServer", { enumerable: true, get: function () { return sse_js_1.createSSEServer; } });
+Object.defineProperty(exports, "handleAgentStream", { enumerable: true, get: function () { return sse_js_1.handleAgentStream; } });
 var skills_loader_js_1 = require("./skills-loader.js");
 Object.defineProperty(exports, "SkillsLoader", { enumerable: true, get: function () { return skills_loader_js_1.SkillsLoader; } });
 var indexer_js_1 = require("./context/indexer.js");

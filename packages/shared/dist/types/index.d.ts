@@ -159,4 +159,6 @@ export type { AgentState, AgentMessage, ToolResult, ValidationResult } from './a
 export type { SingleCallConfig, SingleCallRequest, SingleCallResponse, LLMMessage, LLMResponse } from './single-call.types';
 export type { ConversationMessage, CompressorConfig, CompressedSummary } from './compressor.types';
 export { getDefaultCompressorConfig } from './compressor.types';
+export type { AgentEvent, AgentRunRequest, AgentRunResponse } from './ag-ui.types';
+export { SSE_HEADERS, formatSSE } from './ag-ui.types';
 //# sourceMappingURL=index.d.ts.map
