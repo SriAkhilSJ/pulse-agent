@@ -17,6 +17,7 @@
     "@langchain/core": "^1.2.0",
     "@langchain/langgraph": "^1.4.4",
     "@langchain/openai": "^1.5.1",
+    "@nut-tree-fork/nut-js": "^4.2.6",
     "@pulse-ide/shared": "workspace:*",
     "better-sqlite3": "^11.10.0",
     "chokidar": "^3.6.0",
