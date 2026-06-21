@@ -7,18 +7,17 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
-    "composite": true
+    "composite": true,
+    "types": ["node"]
   },
+  "include": ["src/**/*"],
   "references": [
-    { "path": "./packages/shared" },
-    { "path": "./packages/backend" },
-    { "path": "./packages/frontend" },
-    { "path": "./packages/cli" }
-  ],
-  "exclude": ["node_modules", "dist", "packages/*/dist"]
+    { "path": "../shared" },
+    { "path": "../backend" }
+  ]
 }

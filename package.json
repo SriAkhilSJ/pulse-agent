@@ -9,10 +9,14 @@
     "build:shared": "pnpm --filter @pulse-ide/shared build",
     "build:backend": "pnpm --filter @pulse-ide/backend build",
     "build:frontend": "pnpm --filter @pulse-ide/frontend build",
+    "build:cli": "pnpm --filter @pulse-ide/cli build",
     "dev:backend": "pnpm --filter @pulse-ide/backend dev",
     "dev:frontend": "pnpm --filter @pulse-ide/frontend dev",
+    "dev:cli": "pnpm --filter @pulse-ide/cli dev",
+    "cli": "pnpm --filter @pulse-ide/cli dev chat",
     "lint": "pnpm -r lint",
-    "clean": "pnpm -r exec rm -rf dist node_modules"
+    "clean": "pnpm -r exec rm -rf dist node_modules",
+    "smoke": "pnpm --filter @pulse-ide/backend exec tsx src/smoke.test.ts"
   },
   "engines": {
     "node": ">=18.0.0",
