@@ -1,5 +1,41 @@
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# Build outputs
 dist/
-*.log
+dist-electron/
+build/
+out/
+*.tsbuildinfo
+*.tgz
+
+# Environment & Secrets
 .env
+.env.local
+.env.*.local
+*.pem
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS junk
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Temporary cache
+.cache/
+.turbo/
+
+# Test files
+test-*.html
