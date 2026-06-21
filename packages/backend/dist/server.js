@@ -48,6 +48,10 @@ const indexer_js_1 = require("./context/indexer.js");
 const compressor_js_1 = require("./context/compressor.js");
 const semantic_cache_js_1 = require("./context/cache/semantic-cache.js");
 const tracer_js_1 = require("./observability/tracer.js");
+const router_js_1 = require("./agent/router.js");
+const single_call_js_1 = require("./agent/single-call/single-call.js");
+const multi_call_js_1 = require("./agent/graph/multi-call.js");
+const shared_1 = require("@pulse-ide/shared");
 // Load .env
 function loadEnv() {
     const env = {};
@@ -138,11 +142,128 @@ agent.setContextBuilder(() => {
     return contextEngine.getCurrentContext();
 });
 // ---------------------------------------------------------------------------
+// SSE Agent Stream Handler
+// ---------------------------------------------------------------------------
+async function handleAgentStream(req, res) {
+    // Parse JSON body
+    let body = '';
+    req.on('data', (chunk) => { body += chunk.toString(); });
+    await new Promise((resolve) => req.on('end', resolve));
+    let request;
+    try {
+        request = JSON.parse(body);
+    }
+    catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        return;
+    }
+    if (!request.query || request.query.trim().length === 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Query is required' }));
+        return;
+    }
+    // Set SSE headers
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+    });
+    const sendEvent = (event) => {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+    try {
+        const routeContext = {
+            query: request.query,
+            currentFileContent: request.fileContent || '',
+            cursorPosition: 0,
+            activeFilePath: request.filePath || '',
+            workspaceFiles: [],
+            recentEdits: [],
+            conversationHistoryLength: 0,
+        };
+        const decision = (0, router_js_1.route)(routeContext);
+        sendEvent({ type: 'state-update', status: 'routing', details: { route: decision.type, reason: decision.reason } });
+        if (decision.type === shared_1.RouteType.SINGLE_CALL) {
+            const config = (0, single_call_js_1.getConfigFromEnv)();
+            const agent = new single_call_js_1.SingleCallAgent(config);
+            sendEvent({ type: 'state-update', status: 'single-call-start', details: { model: config.model } });
+            const result = await agent.run({
+                query: request.query,
+                filePath: request.filePath || 'unknown.ts',
+                fileContent: request.fileContent || '',
+            });
+            if (result.success) {
+                sendEvent({ type: 'text-delta', content: result.diff });
+                sendEvent({ type: 'state-update', status: 'single-call-complete', details: { filePath: result.filePath } });
+            }
+            else {
+                sendEvent({ type: 'error', message: result.error || 'Single-call agent failed' });
+            }
+        }
+        else {
+            sendEvent({ type: 'state-update', status: 'multi-call-start', details: {} });
+            const result = (0, multi_call_js_1.runMultiCallAgent)(request.query, {
+                model: 'openrouter/owl-alpha',
+                apiKey: process.env['LLM_API_KEY'] || '',
+                baseURL: process.env['OLLAMA_URL'] || 'http://localhost:11434/api/chat',
+                maxIterations: 10,
+                temperature: 0.1,
+            });
+            for (const step of result.currentPlan) {
+                sendEvent({ type: 'state-update', status: 'planning', details: { step } });
+            }
+            for (const step of result.completedSteps) {
+                sendEvent({ type: 'state-update', status: 'completed', details: { step } });
+            }
+            for (const change of result.fileChanges) {
+                sendEvent({ type: 'tool-call', tool: 'edit_file', args: { path: change.filePath, content: change.newContent }, id: `tool-${Date.now()}` });
+                sendEvent({ type: 'tool-result', tool: 'edit_file', result: `Edited ${change.filePath}`, id: `tool-${Date.now()}` });
+            }
+            if (result.status === 'done') {
+                sendEvent({ type: 'state-update', status: 'multi-call-complete', details: { stepsCompleted: result.completedSteps.length } });
+            }
+        }
+        sendEvent({ type: 'done', summary: `Task completed via ${decision.type} route` });
+    }
+    catch (err) {
+        sendEvent({ type: 'error', message: err instanceof Error ? err.message : String(err) });
+    }
+    finally {
+        res.end();
+    }
+}
+// ---------------------------------------------------------------------------
 // WebSocket server
 // ---------------------------------------------------------------------------
-const httpServer = http.createServer((_req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', tools: registry.getToolNames().length }));
+// ---------------------------------------------------------------------------
+// HTTP Server (health check + SSE endpoint)
+// ---------------------------------------------------------------------------
+const httpServer = http.createServer(async (req, res) => {
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+    // Health check
+    if (req.url === '/health' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok', tools: registry.getToolNames().length }));
+        return;
+    }
+    // SSE agent run endpoint
+    if (req.url === '/api/agent/run' && req.method === 'POST') {
+        await handleAgentStream(req, res);
+        return;
+    }
+    // 404
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
 });
 const wss = new ws_1.WebSocketServer({ server: httpServer });
 function send(ws, event) {
