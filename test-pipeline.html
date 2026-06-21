@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Full Pipeline Test</title>
+<style>
+body { font-family: 'SF Mono', monospace; background: #1e1e2e; color: #cdd6f4; padding: 20px; }
+h1 { color: #89b4fa; }
+h2 { color: #a6e3a1; margin-top: 20px; }
+.test { margin: 10px 0; padding: 10px; border: 1px solid #45475a; border-radius: 6px; }
+.pass { border-color: #a6e3a1; background: rgba(166,227,161,0.1); }
+.fail { border-color: #f38ba8; background: rgba(243,139,168,0.1); }
+.output { white-space: pre-wrap; font-size: 12px; max-height: 300px; overflow-y: auto; background: #181825; padding: 10px; border-radius: 4px; }
+button { background: #89b4fa; color: #1e1e2e; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 4px; }
+button:hover { background: #b4befe; }
+</style>
+</head>
+<body>
+<h1>⚡ PulseCode Full Pipeline Test</h1>
+
+<div class="test">
+<h2>Test 1: Backend Health</h2>
+<button onclick="testHealth()">Run Test</button>
+<div id="health-output" class="output"></div>
+</div>
+
+<div class="test">
+<h2>Test 2: SSE Streaming</h2>
+<button onclick="testSSE()">Run Test</button>
+<div id="sse-output" class="output"></div>
+</div>
+
+<div class="test">
+<h2>Test 3: Tool Calls</h2>
+<button onclick="testTools()">Run Test</button>
+<div id="tools-output" class="output"></div>
+</div>
+
+<div class="test">
+<h2>LLM Configuration</h2>
+<div id="config-output" class="output">Loading...</div>
+</div>
+
+<script>
+const BASE = 'http://localhost:3001';
+
+async function testHealth() {
+  const out = document.getElementById('health-output');
+  out.textContent = 'Testing...';
+  try {
+    const r = await fetch(`${BASE}/health`);
+    const d = await r.json();
+    out.textContent = JSON.stringify(d, null, 2);
+    out.parentElement.className = 'test pass';
+  } catch(e) {
+    out.textContent = 'FAIL: ' + e.message;
+    out.parentElement.className = 'test fail';
+  }
+}
+
+async function testSSE() {
+  const out = document.getElementById('sse-output');
+  out.textContent = 'Connecting to SSE...';
+  try {
+    const r = await fetch(`${BASE}/api/agent/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'hi' })
+    });
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let events = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const ev = JSON.parse(line.substring(6));
+            events += `[${ev.type}] ${JSON.stringify(ev).substring(0, 200)}\n`;
+          } catch { events += line + '\n'; }
+        }
+      }
+    }
+    out.textContent = events || 'No events received';
+    out.parentElement.className = events.includes('done') ? 'test pass' : 'test fail';
+  } catch(e) {
+    out.textContent = 'FAIL: ' + e.message;
+    out.parentElement.className = 'test fail';
+  }
+}
+
+async function testTools() {
+  const out = document.getElementById('tools-output');
+  out.textContent = 'Listing tools...';
+  try {
+    const r = await fetch(`${BASE}/health`);
+    const d = await r.json();
+    out.textContent = `Tools registered: ${d.tools}\n`;
+    
+    // Test search tool
+    const sse = await fetch(`${BASE}/api/agent/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'search code for "function"' })
+    });
+    const reader = sse.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let toolEvents = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const ev = JSON.parse(line.substring(6));
+            if (ev.type === 'tool-call' || ev.type === 'tool-result') {
+              toolEvents += `[${ev.type}] ${JSON.stringify(ev).substring(0, 300)}\n---\n`;
+            }
+          } catch {}
+        }
+      }
+    }
+    out.textContent += toolEvents || 'No tool events';
+    out.parentElement.className = toolEvents ? 'test pass' : 'test fail';
+  } catch(e) {
+    out.textContent = 'FAIL: ' + e.message;
+    out.parentElement.className = 'test fail';
+  }
+}
+
+// Show config
+document.getElementById('config-output').textContent = `
+Backend URL: ${BASE}
+SSE Endpoint: ${BASE}/api/agent/run
+Models:
+  - LLM: deepseek-r1:14b (via Ollama ngrok)
+  - Vision: llava:7b (via Ollama ngrok)  
+  - Embeddings: nomic-embed-text (via Ollama ngrok)
+  - Image Gen: SD 1.5 (via ComfyUI ngrok)
+
+Ollama URL: https://thickety-jessenia-unaverred.ngrok-free.dev
+ComfyUI URL: https://lustiness-electable-unsaddle.ngrok-free.dev
+`;
+</script>
+</body>
+</html>

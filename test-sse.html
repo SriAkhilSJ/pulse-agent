@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><title>SSE Test</title></head>
+<body>
+<h1>SSE Pipeline Test</h1>
+<div id="output" style="white-space: pre-wrap; font-family: monospace; background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px; min-height: 200px;"></div>
+<script>
+const output = document.getElementById('output');
+const evtSource = new EventSource('http://localhost:3001/api/agent/run');
+
+// SSE doesn't support POST, so we need to use fetch
+fetch('http://localhost:3001/api/agent/run', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: 'Say hello' })
+}).then(response => {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  function read() {
+    reader.read().then(({ done, value }) => {
+      if (done) {
+        output.textContent += '\n\n[STREAM COMPLETE]';
+        return;
+      }
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const event = JSON.parse(line.substring(6));
+            output.textContent += JSON.stringify(event, null, 2) + '\n---\n';
+          } catch(e) {
+            output.textContent += line + '\n';
+          }
+        }
+      }
+      read();
+    });
+  }
+  read();
+}).catch(err => {
+  output.textContent = 'ERROR: ' + err.message;
+});
+</script>
+</body>
+</html>
