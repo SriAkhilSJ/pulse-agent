@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 import { startRepl, runSingleQuery } from './repl.js';
+import { linkedinAgent } from './linkedin.js';
 
 // Load .env from monorepo root
 dotenv.config({ path: resolve(__dirname, '../../.env') });
@@ -33,6 +34,14 @@ program
   .action(async (query: string | undefined, options: { workspace: string }) => {
     if (!query) { program.help(); return; }
     await runSingleQuery(query, options.workspace);
+  });
+
+// LinkedIn automation
+program
+  .command('linkedin')
+  .description('LinkedIn automation agent — search, connect, post, apply')
+  .action(async () => {
+    await linkedinAgent();
   });
 
 program.parse();
