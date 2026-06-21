@@ -391,18 +391,25 @@ wss.on('connection', (ws) => {
 // Start
 // ---------------------------------------------------------------------------
 
-const PORT = config.serverPort;
-const HOST = config.serverHost;
+export function startServer() {
+  const PORT = config.serverPort;
+  const HOST = config.serverHost;
 
-httpServer.listen(PORT, HOST, () => {
-  console.log(`[PulseCode] Server running on ws://${HOST}:${PORT}`);
-  console.log(`[PulseCode] Health check: http://${HOST}:${PORT}`);
-});
+  httpServer.listen(PORT, HOST, () => {
+    console.log(`[PulseCode] Server running on ws://${HOST}:${PORT}`);
+    console.log(`[PulseCode] Health check: http://${HOST}:${PORT}`);
+  });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n[PulseCode] Shutting down...');
-  wss.close();
-  httpServer.close();
-  process.exit(0);
-});
+  // Graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\n[PulseCode] Shutting down...');
+    wss.close();
+    httpServer.close();
+    process.exit(0);
+  });
+}
+
+// Auto-start only when run directly
+if (require.main === module) {
+  startServer();
+}

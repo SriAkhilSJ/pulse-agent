@@ -35,7 +35,7 @@ export { logChangeTool, getChangeLogTool, revertChangesTool, clearChangeLog } fr
 
 // Start server if run directly
 if (require.main === module) {
-  import('./server.js').then(() => {
-    console.log('[PulseCode] Starting server...');
+  import('./server.js').then(({ startServer }) => {
+    startServer();
   });
 }

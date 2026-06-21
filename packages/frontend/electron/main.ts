@@ -1,13 +1,32 @@
 // packages/frontend/electron/main.ts
-// Electron main process — window management + IPC handlers
+// Electron main process — starts backend + window
 
-import { app, BrowserWindow, Menu, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import * as path from 'path';
+import { spawn, ChildProcess } from 'child_process';
 import { registerIpcHandlers } from './ipc-handlers.js';
 
-// __dirname is already available in CommonJS (Node.js)
-
 let mainWindow: BrowserWindow | null = null;
+let backendProcess: ChildProcess | null = null;
+
+function startBackend() {
+  const backendPath = path.join(__dirname, '../backend/dist/server.js');
+  console.log('[Electron] Starting backend:', backendPath);
+
+  backendProcess = spawn('node', [backendPath], {
+    cwd: path.join(__dirname, '../backend'),
+    stdio: 'inherit',
+    env: { ...process.env },
+  });
+
+  backendProcess.on('error', (err) => {
+    console.error('[Electron] Backend error:', err);
+  });
+
+  backendProcess.on('exit', (code) => {
+    console.log('[Electron] Backend exited with code:', code);
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -23,29 +42,20 @@ function createWindow() {
     trafficLightPosition: { x: 16, y: 16 },
   });
 
-  // Always load built files in production
   const indexPath = path.join(__dirname, '../dist/index.html');
   console.log('[Electron] Loading:', indexPath);
   mainWindow.loadFile(indexPath);
-  
-  // Open DevTools for debugging
+
   mainWindow.webContents.openDevTools();
-  
-  // Log any load errors
+
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('[Electron] Load failed:', errorCode, errorDescription);
-  });
-  
-  // Log console errors from renderer
-  mainWindow.webContents.on('console-message', (_event, level, message) => {
-    if (level >= 2) console.error('[Renderer]', message);
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // Create application menu
   createApplicationMenu();
 }
 
@@ -54,128 +64,48 @@ function createApplicationMenu() {
     {
       label: 'File',
       submenu: [
-        {
-          label: 'Open Folder...',
-          accelerator: 'CmdOrCtrl+O',
-          click: async () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-open-folder');
-            }
-          },
-        },
+        { label: 'Open Folder...', accelerator: 'CmdOrCtrl+O', click: () => mainWindow?.webContents.send('menu-open-folder') },
         { type: 'separator' },
-        {
-          label: 'New File',
-          accelerator: 'CmdOrCtrl+N',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-new-file');
-            }
-          },
-        },
-        {
-          label: 'Save',
-          accelerator: 'CmdOrCtrl+S',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-save-file');
-            }
-          },
-        },
+        { label: 'New File', accelerator: 'CmdOrCtrl+N', click: () => mainWindow?.webContents.send('menu-new-file') },
+        { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => mainWindow?.webContents.send('menu-save-file') },
         { type: 'separator' },
         { role: 'quit' },
       ],
     },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { type: 'separator' },
-        { role: 'selectAll' },
-      ],
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' },
-      ],
-    },
+    { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { type: 'separator' }, { role: 'selectAll' }] },
+    { label: 'View', submenu: [{ role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }] },
     {
       label: 'Agent',
       submenu: [
-        {
-          label: 'New Chat',
-          accelerator: 'CmdOrCtrl+T',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-new-chat');
-            }
-          },
-        },
-        {
-          label: 'Stop Agent',
-          accelerator: 'CmdOrCtrl+.',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-stop-agent');
-            }
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Clear History',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('menu-clear-history');
-            }
-          },
-        },
+        { label: 'New Chat', accelerator: 'CmdOrCtrl+T', click: () => mainWindow?.webContents.send('menu-new-chat') },
+        { label: 'Stop Agent', accelerator: 'CmdOrCtrl+.', click: () => mainWindow?.webContents.send('menu-stop-agent') },
       ],
     },
   ];
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 app.whenReady().then(() => {
-  // Register all IPC handlers
   registerIpcHandlers();
+  startBackend();
 
-  // Legacy chat handler (kept for backward compatibility)
-  ipcMain.handle('backend:chat', async (_event, message: string, sessionId: string) => {
-    try {
-      const response = await fetch('http://127.0.0.1:3001/api/agent/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, sessionId }),
-      });
-      return response.json();
-    } catch (err) {
-      return { error: (err as Error).message };
-    }
-  });
-
-  createWindow();
+  // Wait for backend to be ready before creating window
+  setTimeout(() => {
+    createWindow();
+  }, 2000);
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    if (backendProcess) backendProcess.kill();
+    app.quit();
+  }
 });
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+app.on('before-quit', () => {
+  if (backendProcess) backendProcess.kill();
 });
