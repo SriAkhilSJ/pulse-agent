@@ -1,12 +1,20 @@
 // packages/frontend/src/App.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatPanel } from './components/Chat/ChatPanel.js';
 import { StatusBar } from './components/StatusBar/StatusBar.js';
+import { MonacoEditor } from './components/Editor/MonacoEditor.js';
+import { FileTree } from './components/FileTree/FileTree.js';
+import { DiffViewer } from './components/Diff/DiffViewer.js';
 import { useAgentStore } from './store/agent-store.js';
 import './styles.css';
 
 export function App() {
-  const { sessionCost, isStreaming } = useAgentStore();
+  const { sessionCost, isStreaming, pendingDiff, status, acceptDiff, rejectDiff } = useAgentStore();
+  const [activeFile, setActiveFile] = useState<string | undefined>();
+
+  const handleFileOpen = (filePath: string) => {
+    setActiveFile(filePath);
+  };
 
   return (
     <div className="app">
@@ -17,17 +25,31 @@ export function App() {
           {isStreaming && <span className="app-header__streaming">●</span>}
         </div>
       </div>
+
       <div className="app-body">
-        <div className="editor-area">
-          <div className="editor-placeholder">
-            <p>📝 Monaco Editor (coming soon)</p>
-            <p>Open a file to start editing</p>
-          </div>
+        {/* File tree sidebar */}
+        <div className="file-tree-sidebar">
+          <FileTree onFileOpen={handleFileOpen} />
         </div>
+
+        {/* Editor area */}
+        <div className="editor-area">
+          <MonacoEditor filePath={activeFile} />
+        </div>
+
+        {/* Chat sidebar */}
         <div className="chat-sidebar">
           <ChatPanel />
         </div>
       </div>
+
+      {/* Diff viewer modal */}
+      {pendingDiff && (
+        <div className="diff-modal">
+          <DiffViewer diff={pendingDiff} onAccept={acceptDiff} onReject={rejectDiff} />
+        </div>
+      )}
+
       <StatusBar />
     </div>
   );

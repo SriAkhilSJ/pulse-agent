@@ -20,7 +20,7 @@ export const ApprovalDialog = memo(function ApprovalDialog({ diff, onAccept, onR
           📝 AI wants to edit <code>{diff.filePath}</code>
         </div>
 
-        <DiffViewer diff={diff} />
+        <DiffViewer diff={diff} onAccept={onAccept} onReject={onReject} />
 
         <div className="approval-dialog__actions">
           <button
