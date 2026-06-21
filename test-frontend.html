@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Frontend Test</title></head>
+<body>
+<h1>Frontend Load Test</h1>
+<div id="status">Loading...</div>
+<script type="module">
+import { create } from 'https://esm.sh/zustand@4.5.0';
+const status = document.getElementById('status');
+status.textContent = '✅ JavaScript loaded successfully!';
+
+// Test SSE connection
+fetch('http://localhost:3001/api/agent/run', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: 'hi' })
+}).then(r => {
+  status.textContent += '\n✅ SSE connection successful!';
+  status.textContent += '\nStatus: ' + r.status;
+}).catch(err => {
+  status.textContent += '\n❌ SSE error: ' + err.message;
+});
+</script>
+</body>
+</html>
