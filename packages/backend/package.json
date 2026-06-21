@@ -21,6 +21,7 @@
     "@pulse-ide/shared": "workspace:*",
     "better-sqlite3": "^11.10.0",
     "chokidar": "^3.6.0",
+    "puppeteer": "^25.1.0",
     "ws": "^8.17.0",
     "zod": "^4.4.3"
   },

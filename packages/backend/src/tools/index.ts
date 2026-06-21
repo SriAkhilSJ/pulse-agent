@@ -18,6 +18,7 @@ import {
   desktopScrollTool,
   desktopGetScreenSizeTool,
 } from './desktop-tool.js';
+import { initBrowserTools } from './browser-tool.js';
 
 export const ALL_TOOLS = [
   // File tools
@@ -38,7 +39,18 @@ export const ALL_TOOLS = [
   imageGenTool,
   // Desktop Automation (nut.js)
   desktopScreenshotTool, desktopClickTool, desktopTypeTool, desktopScrollTool, desktopGetScreenSizeTool,
+  // Browser Automation (Puppeteer) — lazy loaded
 ];
+
+// Initialize browser tools asynchronously
+let browserToolsLoaded = false;
+export async function ensureBrowserTools() {
+  if (!browserToolsLoaded) {
+    const browserTools = await initBrowserTools();
+    ALL_TOOLS.push(...browserTools);
+    browserToolsLoaded = true;
+  }
+}
 
 export {
   readFileTool, writeFileTool, listFilesTool, editFileTool, searchCodeTool,
