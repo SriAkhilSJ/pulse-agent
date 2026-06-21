@@ -1,21 +1,18 @@
 // packages/frontend/src/components/Chat/ChatPanel.tsx
-// ChatPanel — main chat interface with streaming, tool calls, and diff approval
+// Agentic interface — streaming, tool cards, breathing indicator
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAgentStore } from '../../store/agent-store.js';
 import { useAgent } from '../../hooks/useAgent.js';
 import { MessageBubble } from './MessageBubble.js';
 import { ToolCallCard } from './ToolCallCard.js';
-import { ApprovalDialog } from '../Diff/ApprovalDialog.js';
 
 export function ChatPanel() {
   const [input, setInput] = useState('');
   const { messages, status, currentToolCalls, pendingDiff, isStreaming, error } = useAgentStore();
   const { sendQuery, stopQuery, acceptDiff, rejectDiff } = useAgent();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -36,13 +33,13 @@ export function ChatPanel() {
   return (
     <div className="chat-panel">
       {/* Status bar */}
-      <div className="chat-panel__status">
-        {isStreaming && <span className="chat-panel__status-dot" />}
-        <span className="chat-panel__status-text">{status}</span>
+      <div className="chat-status">
+        {isStreaming && <span className="status-dot running" />}
+        <span className="status-text">{status}</span>
       </div>
 
       {/* Messages */}
-      <div className="chat-panel__messages">
+      <div className="chat-messages">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
@@ -52,47 +49,48 @@ export function ChatPanel() {
           <ToolCallCard key={call.id} call={call} />
         ))}
 
+        {/* Breathing indicator while streaming with no content yet */}
+        {isStreaming && !messages.some(m => m.role === 'assistant' && m.content) && (
+          <div className="breathing">
+            <span className="breathing-dots"><i /><i /><i /></span>
+            <span className="breathing-label">{status}</span>
+          </div>
+        )}
+
         {/* Error */}
         {error && (
-          <div className="chat-panel__error">
-            ❌ {error}
-          </div>
+          <div className="chat-error">❌ {error}</div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Diff approval dialog */}
+      {/* Diff approval */}
       {pendingDiff && (
-        <ApprovalDialog
-          diff={pendingDiff}
-          onAccept={acceptDiff}
-          onReject={rejectDiff}
-        />
+        <div className="diff-approval">
+          <span>🤖 Edit {pendingDiff.filePath}</span>
+          <div className="diff-actions">
+            <button className="btn-reject" onClick={rejectDiff}>❌</button>
+            <button className="btn-accept" onClick={acceptDiff}>✅</button>
+          </div>
+        </div>
       )}
 
       {/* Input */}
-      <div className="chat-panel__input">
+      <div className="chat-input">
         <textarea
-          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isStreaming ? 'Agent is working...' : 'Ask PulseCode...'}
+          placeholder={isStreaming ? 'Agent working...' : 'Ask PulseCode...'}
           rows={3}
           disabled={isStreaming}
         />
-        <div className="chat-panel__actions">
+        <div className="input-actions">
           {isStreaming ? (
-            <button className="chat-panel__stop" onClick={stopQuery}>
-              ⏹ Stop
-            </button>
+            <button className="btn-stop" onClick={stopQuery}>⏹ Stop</button>
           ) : (
-            <button
-              className="chat-panel__send"
-              onClick={handleSend}
-              disabled={!input.trim()}
-            >
+            <button className="btn-send" onClick={handleSend} disabled={!input.trim()}>
               ➤ Send
             </button>
           )}
