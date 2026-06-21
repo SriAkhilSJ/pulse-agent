@@ -1,5 +1,5 @@
 // packages/frontend/src/components/FileTree/FileTree.tsx
-// File Tree Explorer — recursive folder list with file opening
+// File Tree Explorer — reads real workspace files from backend
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAgentStore } from '../../store/agent-store.js';
@@ -14,39 +14,41 @@ interface FileNode {
 
 interface FileTreeProps {
   workspacePath?: string;
-  onFileOpen?: (filePath: string) => void;
+  onFileOpen?: (filePath: string, content: string) => void;
 }
 
 export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeProps) {
   const [files, setFiles] = useState<FileNode[]>([]);
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { addMessage } = useAgentStore();
 
-  // Load file tree
-  useEffect(() => {
-    loadFileTree(workspacePath);
-  }, [workspacePath]);
-
-  const loadFileTree = useCallback(async (path: string) => {
+  // Load file tree from backend
+  const loadFileTree = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      // In Electron, use IPC to read directory
-      // In browser mode, use the backend API
-      const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
+      // Use the backend API to list files
+      const response = await fetch(`/api/files?path=${encodeURIComponent(workspacePath)}`);
       if (response.ok) {
         const data = await response.json();
         setFiles(data.files || []);
       } else {
-        // Fallback: show mock tree
-        setFiles(getMockFileTree());
+        // If backend doesn't have /api/files, use the agent to list files
+        setError('File listing requires backend API');
+        setFiles([]);
       }
-    } catch {
-      // Fallback for development
-      setFiles(getMockFileTree());
+    } catch (err) {
+      setError('Could not load file tree');
+      setFiles([]);
     }
     setLoading(false);
-  }, []);
+  }, [workspacePath]);
+
+  useEffect(() => {
+    loadFileTree();
+  }, [loadFileTree]);
 
   const toggleDir = useCallback((path: string) => {
     setExpandedDirs((prev) => {
@@ -60,19 +62,32 @@ export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeP
     });
   }, []);
 
-  const handleFileClick = useCallback((node: FileNode) => {
+  const handleFileClick = useCallback(async (node: FileNode) => {
     if (node.isDirectory) {
       toggleDir(node.path);
-    } else {
-      onFileOpen?.(node.path);
-      addMessage({
-        id: `msg-${Date.now()}`,
-        role: 'system',
-        content: `📂 Opened ${node.path}`,
-        timestamp: Date.now(),
-      });
+      return;
     }
-  }, [onFileOpen, addMessage]);
+
+    // Read file content via backend
+    try {
+      const response = await fetch(`/api/files/read?path=${encodeURIComponent(node.path)}`);
+      if (response.ok) {
+        const data = await response.json();
+        onFileOpen?.(node.path, data.content || '');
+      } else {
+        // Fallback: ask agent to read the file
+        addMessage({
+          id: `msg-${Date.now()}`,
+          role: 'system',
+          content: `📂 Opened ${node.path} (content loaded via agent)`,
+          timestamp: Date.now(),
+        });
+        onFileOpen?.(node.path, '');
+      }
+    } catch {
+      onFileOpen?.(node.path, '');
+    }
+  }, [onFileOpen, addMessage, toggleDir]);
 
   const renderNode = (node: FileNode) => {
     const isExpanded = expandedDirs.has(node.path);
@@ -104,13 +119,30 @@ export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeP
     return <div className="file-tree file-tree--loading">Loading...</div>;
   }
 
+  if (error) {
+    return (
+      <div className="file-tree">
+        <div className="file-tree__header">📁 Explorer</div>
+        <div className="file-tree__error">{error}</div>
+        <div className="file-tree__refresh" onClick={loadFileTree}>
+          🔄 Retry
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="file-tree">
       <div className="file-tree__header">
         <span>📁 Explorer</span>
+        <span className="file-tree__refresh" onClick={loadFileTree}>🔄</span>
       </div>
       <div className="file-tree__content">
-        {files.map(renderNode)}
+        {files.length === 0 ? (
+          <div className="file-tree__empty">No files found</div>
+        ) : (
+          files.map(renderNode)
+        )}
       </div>
     </div>
   );
@@ -119,69 +151,16 @@ export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeP
 function getFileIcon(name: string): string {
   const ext = name.split('.').pop()?.toLowerCase();
   const iconMap: Record<string, string> = {
-    ts: '🔷', tsx: '🔷',
-    js: '🟨', jsx: '🟨',
-    py: '🐍',
-    go: '🔵',
-    rs: '🦀',
-    java: '☕',
+    ts: '🔷', tsx: '🔷', js: '🟨', jsx: '🟨',
+    py: '🐍', go: '🔵', rs: '🦀', java: '☕',
     c: '⚙️', cpp: '⚙️', cs: '⚙️',
     html: '🌐', css: '🎨', scss: '🎨',
     json: '📋', yaml: '📋', yml: '📋',
     md: '📝', sh: '⚡', sql: '🗃️',
     png: '🖼️', jpg: '🖼️', svg: '🖼️',
+    gif: '🖼️', webp: '🖼️',
+    txt: '📄', log: '📄',
+    toml: '📄', cfg: '📄', ini: '📄',
   };
   return iconMap[ext || ''] || '📄';
-}
-
-// Mock file tree for development
-function getMockFileTree(): FileNode[] {
-  return [
-    {
-      name: 'src',
-      path: '/workspace/src',
-      isDirectory: true,
-      depth: 0,
-      children: [
-        {
-          name: 'index.ts',
-          path: '/workspace/src/index.ts',
-          isDirectory: false,
-          depth: 1,
-        },
-        {
-          name: 'auth.ts',
-          path: '/workspace/src/auth.ts',
-          isDirectory: false,
-          depth: 1,
-        },
-        {
-          name: 'utils',
-          path: '/workspace/src/utils',
-          isDirectory: true,
-          depth: 1,
-          children: [
-            {
-              name: 'helpers.ts',
-              path: '/workspace/src/utils/helpers.ts',
-              isDirectory: false,
-              depth: 2,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'package.json',
-      path: '/workspace/package.json',
-      isDirectory: false,
-      depth: 0,
-    },
-    {
-      name: 'README.md',
-      path: '/workspace/README.md',
-      isDirectory: false,
-      depth: 0,
-    },
-  ];
 }

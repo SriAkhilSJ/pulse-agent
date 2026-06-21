@@ -786,3 +786,86 @@ body {
   opacity: 0.5;
   font-style: italic;
 }
+
+/* App Header Right */
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Editor Placeholder */
+.editor-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 32px;
+}
+
+.editor-placeholder h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+
+.editor-placeholder p {
+  margin: 4px 0;
+}
+
+.editor-placeholder__shortcuts {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--bg-overlay);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.editor-placeholder__shortcuts p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.editor-placeholder__status {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--success);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1s infinite;
+}
+
+/* File Tree Error */
+.file-tree__error {
+  padding: 8px 12px;
+  color: var(--error);
+  font-size: 11px;
+}
+
+.file-tree__refresh {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.file-tree__refresh:hover {
+  background: var(--bg-overlay);
+}
+
+.file-tree__empty {
+  padding: 16px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  text-align: center;
+}
