@@ -269,6 +269,18 @@ const httpServer = http.createServer(async (req, res) => {
 
 const wss = new WebSocketServer({ server: httpServer });
 
+// Handle WebSocketServer errors (e.g. EADDRINUSE)
+wss.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[PulseCode] Port ${config.serverPort} in use, retrying in 2s...`);
+    setTimeout(() => {
+      httpServer.listen(config.serverPort, config.serverHost);
+    }, 2000);
+  } else {
+    console.error('[PulseCode] WSS error:', err);
+  }
+});
+
 function send(ws: WebSocket, event: OutgoingEvent) {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(event));
@@ -403,9 +415,9 @@ export function startServer() {
   // Handle EADDRINUSE by retrying after a delay
   httpServer.on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
-      console.log(`[PulseCode] Port ${PORT} in use, retrying in 2s...`);
+      console.log(`[PulseCode] Port ${config.serverPort} in use, retrying in 2s...`);
       setTimeout(() => {
-        httpServer.listen(PORT, HOST);
+        httpServer.listen(config.serverPort, config.serverHost);
       }, 2000);
     } else {
       console.error('[PulseCode] Server error:', err);
