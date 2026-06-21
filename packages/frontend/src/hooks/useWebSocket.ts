@@ -1,31 +1,26 @@
 // packages/frontend/src/hooks/useWebSocket.ts
+// Legacy WebSocket hook — kept for backward compatibility
+// New code should use useAgent.ts (SSE-based)
+
 import { useEffect, useRef, useCallback } from 'react';
-import { useAgentStore } from '../store/agent-store';
+import { useAgentStore } from '../store/agent-store.js';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://127.0.0.1:3001';
 
 export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
-  const { addMessage, setStreaming, setModel, setConnected } = useAgentStore();
+  const { addMessage, setIsStreaming, setSessionId } = useAgentStore();
 
   useEffect(() => {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      setConnected(true);
       console.log('[WS] Connected to backend');
     };
 
     ws.onclose = () => {
-      setConnected(false);
       console.log('[WS] Disconnected from backend');
-      // Auto-reconnect after 3s
-      setTimeout(() => {
-        if (wsRef.current === ws) {
-          // Reconnect logic would go here
-        }
-      }, 3000);
     };
 
     ws.onmessage = (event) => {
@@ -46,7 +41,6 @@ export function useWebSocket() {
   const handleMessage = useCallback((msg: any) => {
     switch (msg.type) {
       case 'textDelta':
-        // Append to last assistant message or create new one
         addMessage({
           id: `msg-${Date.now()}`,
           role: 'assistant',
@@ -72,10 +66,7 @@ export function useWebSocket() {
         });
         break;
       case 'response':
-        setStreaming(false);
-        break;
-      case 'modelUpdate':
-        setModel(msg.model, msg.provider);
+        setIsStreaming(false);
         break;
       case 'error':
         addMessage({
@@ -84,10 +75,10 @@ export function useWebSocket() {
           content: `Error: ${msg.message}`,
           timestamp: Date.now(),
         });
-        setStreaming(false);
+        setIsStreaming(false);
         break;
     }
-  }, [addMessage, setStreaming, setModel]);
+  }, [addMessage, setIsStreaming]);
 
   const sendMessage = useCallback((text: string, requestId: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -97,9 +88,9 @@ export function useWebSocket() {
         requestId,
         sessionId: useAgentStore.getState().sessionId,
       }));
-      setStreaming(true);
+      setIsStreaming(true);
     }
-  }, [setStreaming]);
+  }, [setIsStreaming]);
 
   const sendEvent = useCallback((event: object) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {

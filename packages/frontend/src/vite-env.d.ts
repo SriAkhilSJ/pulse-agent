@@ -3,11 +3,14 @@
 
 interface ImportMetaEnv {
   readonly VITE_WS_URL: string;
+  readonly VITE_SSE_URL: string;
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+export {};
 
 declare global {
   interface Window {
