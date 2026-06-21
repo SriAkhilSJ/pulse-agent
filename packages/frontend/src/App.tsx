@@ -5,21 +5,22 @@ import { StatusBar } from './components/StatusBar/StatusBar.js';
 import { MonacoEditor } from './components/Editor/MonacoEditor.js';
 import { FileTree } from './components/FileTree/FileTree.js';
 import { useAgentStore } from './store/agent-store.js';
+import { useFileStore } from './store/file-store.js';
 import './styles.css';
 
 export function App() {
-  const [activeFile, setActiveFile] = useState<string | undefined>();
-  const [fileContent, setFileContent] = useState<string>('');
-  const { sessionCost, isStreaming, pendingDiff, status, currentToolCalls, messages } = useAgentStore();
+  const { sessionCost, isStreaming, status } = useAgentStore();
+  const { activeFile, activeFileContent, setActiveFileContent } = useFileStore();
+  const [editorContent, setEditorContent] = useState('');
 
   const handleFileOpen = useCallback((filePath: string, content: string) => {
-    setActiveFile(filePath);
-    setFileContent(content);
+    setEditorContent(content);
   }, []);
 
   const handleContentChange = useCallback((content: string) => {
-    setFileContent(content);
-  }, []);
+    setEditorContent(content);
+    setActiveFileContent(content);
+  }, [setActiveFileContent]);
 
   return (
     <div className="app">
@@ -27,7 +28,7 @@ export function App() {
         <h1>⚡ PulseCode AI</h1>
         <div className="app-header__right">
           {sessionCost > 0 && <span className="app-header__cost">${sessionCost.toFixed(4)}</span>}
-          {isStreaming && <span className="app-header__streaming">● Live</span>}
+          {isStreaming && <span className="app-header__streaming">● {status}</span>}
         </div>
       </div>
 
@@ -42,7 +43,7 @@ export function App() {
           {activeFile ? (
             <MonacoEditor
               filePath={activeFile}
-              content={fileContent}
+              content={editorContent}
               onContentChange={handleContentChange}
             />
           ) : (
@@ -54,6 +55,8 @@ export function App() {
                 <p>• "Create a new React component"</p>
                 <p>• "Fix the bug in auth.ts"</p>
                 <p>• "Add tests for utils.ts"</p>
+                <p>• "Generate an image of a cat"</p>
+                <p>• "Take a screenshot and analyze it"</p>
               </div>
               {isStreaming && (
                 <div className="editor-placeholder__status">

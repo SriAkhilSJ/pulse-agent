@@ -1,131 +1,149 @@
 // packages/frontend/src/components/FileTree/FileTree.tsx
-// File Tree Explorer — reads real workspace files from backend
+// FileTree — real file system explorer via Electron IPC
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useAgentStore } from '../../store/agent-store.js';
-
-interface FileNode {
-  name: string;
-  path: string;
-  isDirectory: boolean;
-  children?: FileNode[];
-  depth: number;
-}
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFileStore, type FileNode } from '../../store/file-store.js';
 
 interface FileTreeProps {
-  workspacePath?: string;
   onFileOpen?: (filePath: string, content: string) => void;
 }
 
-export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeProps) {
-  const [files, setFiles] = useState<FileNode[]>([]);
-  const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { addMessage } = useAgentStore();
+export function FileTree({ onFileOpen }: FileTreeProps) {
+  const {
+    workspaceRoot, fileTree, expandedPaths, activeFile, isLoading, error,
+    loadTree, toggleFolder, openFile, refreshTree, setError,
+  } = useFileStore();
 
-  // Load file tree from backend
-  const loadFileTree = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: FileNode } | null>(null);
+
+  // Handle open folder
+  const handleOpenFolder = useCallback(async () => {
     try {
-      // Use the backend API to list files
-      const response = await fetch(`/api/files?path=${encodeURIComponent(workspacePath)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFiles(data.files || []);
-      } else {
-        // If backend doesn't have /api/files, use the agent to list files
-        setError('File listing requires backend API');
-        setFiles([]);
+      const folderPath = await window.electronAPI.openFolder();
+      if (folderPath) {
+        await loadTree(folderPath);
       }
     } catch (err) {
-      setError('Could not load file tree');
-      setFiles([]);
+      setError((err as Error).message);
     }
-    setLoading(false);
-  }, [workspacePath]);
+  }, [loadTree, setError]);
 
-  useEffect(() => {
-    loadFileTree();
-  }, [loadFileTree]);
-
-  const toggleDir = useCallback((path: string) => {
-    setExpandedDirs((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
+  // Handle file click
+  const handleFileClick = useCallback(async (node: FileNode) => {
+    if (node.type === 'folder') {
+      toggleFolder(node.path);
+    } else {
+      try {
+        await openFile(node.path);
+        const content = await window.electronAPI.readFile(node.path);
+        onFileOpen?.(node.path, content);
+      } catch (err) {
+        setError((err as Error).message);
       }
-      return next;
-    });
+    }
+  }, [toggleFolder, openFile, onFileOpen, setError]);
+
+  // Handle right-click context menu
+  const handleContextMenu = useCallback((e: React.MouseEvent, node: FileNode) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, node });
   }, []);
 
-  const handleFileClick = useCallback(async (node: FileNode) => {
-    if (node.isDirectory) {
-      toggleDir(node.path);
-      return;
-    }
+  // Close context menu on click elsewhere
+  useEffect(() => {
+    const handler = () => setContextMenu(null);
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, []);
 
-    // Read file content via backend
-    try {
-      const response = await fetch(`/api/files/read?path=${encodeURIComponent(node.path)}`);
-      if (response.ok) {
-        const data = await response.json();
-        onFileOpen?.(node.path, data.content || '');
-      } else {
-        // Fallback: ask agent to read the file
-        addMessage({
-          id: `msg-${Date.now()}`,
-          role: 'system',
-          content: `📂 Opened ${node.path} (content loaded via agent)`,
-          timestamp: Date.now(),
-        });
-        onFileOpen?.(node.path, '');
+  // Handle context menu actions
+  const handleDelete = useCallback(async (node: FileNode) => {
+    setContextMenu(null);
+    if (confirm(`Delete ${node.name}?`)) {
+      try {
+        await window.electronAPI.deleteFile(node.path);
+        await refreshTree();
+      } catch (err) {
+        setError((err as Error).message);
       }
-    } catch {
-      onFileOpen?.(node.path, '');
     }
-  }, [onFileOpen, addMessage, toggleDir]);
+  }, [refreshTree, setError]);
 
-  const renderNode = (node: FileNode) => {
-    const isExpanded = expandedDirs.has(node.path);
-    const icon = node.isDirectory
+  const handleNewFile = useCallback(async (parentPath: string) => {
+    setContextMenu(null);
+    const name = prompt('New file name:');
+    if (name) {
+      try {
+        const filePath = `${parentPath}/${name}`;
+        await window.electronAPI.createFile(filePath);
+        await refreshTree();
+        await openFile(filePath);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    }
+  }, [refreshTree, openFile, setError]);
+
+  const handleNewFolder = useCallback(async (parentPath: string) => {
+    setContextMenu(null);
+    const name = prompt('New folder name:');
+    if (name) {
+      try {
+        const folderPath = `${parentPath}/${name}`;
+        await window.electronAPI.createFolder(folderPath);
+        await refreshTree();
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    }
+  }, [refreshTree, setError]);
+
+  // Render a single node
+  const renderNode = useCallback((node: FileNode) => {
+    const isExpanded = expandedPaths.has(node.path);
+    const isActive = activeFile === node.path;
+    const icon = node.type === 'folder'
       ? (isExpanded ? '📂' : '📁')
       : getFileIcon(node.name);
 
     return (
       <div key={node.path} className="file-tree__node">
         <div
-          className={`file-tree__item ${node.isDirectory ? 'file-tree__item--dir' : 'file-tree__item--file'}`}
+          className={`file-tree__item ${isActive ? 'file-tree__item--active' : ''} file-tree__item--${node.type}`}
           style={{ paddingLeft: `${node.depth * 12 + 8}px` }}
           onClick={() => handleFileClick(node)}
+          onContextMenu={(e) => handleContextMenu(e, node)}
         >
           <span className="file-tree__icon">{icon}</span>
           <span className="file-tree__name">{node.name}</span>
+          {node.type === 'file' && node.size !== undefined && node.size > 0 && (
+            <span className="file-tree__size">{formatSize(node.size)}</span>
+          )}
         </div>
 
-        {node.isDirectory && isExpanded && node.children && (
+        {node.type === 'folder' && isExpanded && node.children && (
           <div className="file-tree__children">
-            {node.children.map(renderNode)}
+            {node.children.length === 0 ? (
+              <div className="file-tree__empty-child">Empty folder</div>
+            ) : (
+              node.children.map(renderNode)
+            )}
           </div>
         )}
       </div>
     );
-  };
+  }, [expandedPaths, activeFile, handleFileClick, handleContextMenu]);
 
-  if (loading) {
-    return <div className="file-tree file-tree--loading">Loading...</div>;
-  }
-
-  if (error) {
+  // No workspace loaded
+  if (!workspaceRoot && !isLoading) {
     return (
       <div className="file-tree">
         <div className="file-tree__header">📁 Explorer</div>
-        <div className="file-tree__error">{error}</div>
-        <div className="file-tree__refresh" onClick={loadFileTree}>
-          🔄 Retry
+        <div className="file-tree__empty">
+          <p>No folder open</p>
+          <button className="file-tree__open-btn" onClick={handleOpenFolder}>
+            📂 Open Folder
+          </button>
         </div>
       </div>
     );
@@ -134,16 +152,38 @@ export function FileTree({ workspacePath = '/workspace', onFileOpen }: FileTreeP
   return (
     <div className="file-tree">
       <div className="file-tree__header">
-        <span>📁 Explorer</span>
-        <span className="file-tree__refresh" onClick={loadFileTree}>🔄</span>
+        <span>📁 {workspaceRoot?.split('/').pop() || 'Explorer'}</span>
+        <div className="file-tree__actions">
+          <span className="file-tree__refresh" onClick={() => refreshTree()} title="Refresh">🔄</span>
+          <span className="file-tree__new-file" onClick={() => workspaceRoot && handleNewFile(workspaceRoot)} title="New File">📄</span>
+          <span className="file-tree__new-folder" onClick={() => workspaceRoot && handleNewFolder(workspaceRoot)} title="New Folder">📁</span>
+          <span className="file-tree__open" onClick={handleOpenFolder} title="Open Folder">📂</span>
+        </div>
       </div>
+
+      {isLoading && <div className="file-tree__loading">Loading...</div>}
+      {error && <div className="file-tree__error">{error}</div>}
+
       <div className="file-tree__content">
-        {files.length === 0 ? (
-          <div className="file-tree__empty">No files found</div>
-        ) : (
-          files.map(renderNode)
-        )}
+        {fileTree.map(renderNode)}
       </div>
+
+      {/* Context menu */}
+      {contextMenu && (
+        <div
+          className="file-tree__context-menu"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+        >
+          {contextMenu.node.type === 'folder' && (
+            <>
+              <div className="file-tree__context-item" onClick={() => handleNewFile(contextMenu.node.path)}>📄 New File</div>
+              <div className="file-tree__context-item" onClick={() => handleNewFolder(contextMenu.node.path)}>📁 New Folder</div>
+              <div className="file-tree__context-separator" />
+            </>
+          )}
+          <div className="file-tree__context-item file-tree__context-item--danger" onClick={() => handleDelete(contextMenu.node)}>🗑️ Delete</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -154,13 +194,23 @@ function getFileIcon(name: string): string {
     ts: '🔷', tsx: '🔷', js: '🟨', jsx: '🟨',
     py: '🐍', go: '🔵', rs: '🦀', java: '☕',
     c: '⚙️', cpp: '⚙️', cs: '⚙️',
-    html: '🌐', css: '🎨', scss: '🎨',
-    json: '📋', yaml: '📋', yml: '📋',
-    md: '📝', sh: '⚡', sql: '🗃️',
-    png: '🖼️', jpg: '🖼️', svg: '🖼️',
-    gif: '🖼️', webp: '🖼️',
-    txt: '📄', log: '📄',
-    toml: '📄', cfg: '📄', ini: '📄',
+    html: '🌐', css: '🎨', scss: '🎨', sass: '🎨',
+    json: '📋', yaml: '📋', yml: '📋', toml: '📋',
+    md: '📝', txt: '📄', log: '📄',
+    sh: '⚡', bash: '⚡', zsh: '⚡',
+    sql: '🗃️', graphql: '◈',
+    png: '🖼️', jpg: '🖼️', jpeg: '🖼️', svg: '🖼️', gif: '🖼️', webp: '🖼️',
+    mp4: '🎬', mp3: '🎵', wav: '🎵',
+    zip: '📦', tar: '📦', gz: '📦', rar: '📦',
+    pdf: '📕', doc: '📘', docx: '📘',
+    env: '🔒', gitignore: '🔒', dockerignore: '🔒',
+    lock: '🔒', key: '🔑', pem: '🔑',
   };
   return iconMap[ext || ''] || '📄';
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
