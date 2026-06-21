@@ -3,10 +3,9 @@
 
 import { app, BrowserWindow, Menu, ipcMain } from 'electron';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipc-handlers.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
