@@ -53,14 +53,21 @@ function createWindow() {
         titleBarStyle: 'hiddenInset',
         trafficLightPosition: { x: 16, y: 16 },
     });
-    // In dev, load from Vite dev server; in production, load built files
-    if (process.env['VITE_DEV_SERVER_URL']) {
-        mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL']);
-        mainWindow.webContents.openDevTools();
-    }
-    else {
-        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-    }
+    // Always load built files in production
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    console.log('[Electron] Loading:', indexPath);
+    mainWindow.loadFile(indexPath);
+    // Open DevTools for debugging
+    mainWindow.webContents.openDevTools();
+    // Log any load errors
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+        console.error('[Electron] Load failed:', errorCode, errorDescription);
+    });
+    // Log console errors from renderer
+    mainWindow.webContents.on('console-message', (_event, level, message) => {
+        if (level >= 2)
+            console.error('[Renderer]', message);
+    });
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
