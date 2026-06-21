@@ -4,6 +4,7 @@
 // Supports local logging + optional LangSmith integration via raw HTTP
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tracer = exports.Tracer = void 0;
+exports.calculateCost = calculateCost;
 // ---------------------------------------------------------------------------
 // Token estimation (rough: 1 token ≈ 4 chars)
 // ---------------------------------------------------------------------------

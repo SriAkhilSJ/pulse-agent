@@ -2,7 +2,8 @@
 // packages/backend/src/index.ts
 // Main entry point — re-exports all public API
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearChangeLog = exports.revertChangesTool = exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.CheckpointStore = exports.SemanticCache = exports.tracer = exports.Tracer = exports.isDockerAvailable = exports.DockerSandbox = exports.validate = exports.handleAgentStream = exports.createSSEServer = exports.AgentEventStream = exports.Compressor = exports.LLMError = exports.callLLM = exports.getConfigFromEnv = exports.SingleCallAgent = exports.validateOutput = exports.createMultiCallAgent = exports.runMultiCallAgent = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
+exports.getChangeLogTool = exports.logChangeTool = exports.todoTool = exports.gitStashTool = exports.gitCommitTool = exports.gitBranchTool = exports.gitLogTool = exports.gitDiffTool = exports.gitStatusTool = exports.webFetchTool = exports.webSearchTool = exports.getShellInfo = exports.detectTerminalProfile = exports.runTerminalTool = exports.clearReadCache = exports.searchCodeTool = exports.editFileTool = exports.listFilesTool = exports.writeFileTool = exports.readFileTool = exports.config = exports.ContextCompressor = exports.ContextEngine = exports.SkillsLoader = exports.calculateCost = exports.CostController = exports.CheckpointStore = exports.SemanticCache = exports.tracer = exports.Tracer = exports.isDockerAvailable = exports.DockerSandbox = exports.validate = exports.handleAgentStream = exports.createSSEServer = exports.AgentEventStream = exports.Compressor = exports.LLMError = exports.callLLM = exports.getConfigFromEnv = exports.SingleCallAgent = exports.validateOutput = exports.createMultiCallAgent = exports.runMultiCallAgent = exports.route = exports.AGENT_TYPES = exports.Orchestrator = exports.defineTool = exports.ToolRegistry = exports.Agent = void 0;
+exports.clearChangeLog = exports.revertChangesTool = void 0;
 var agent_js_1 = require("./agent.js");
 Object.defineProperty(exports, "Agent", { enumerable: true, get: function () { return agent_js_1.Agent; } });
 var tool_registry_js_1 = require("./tool-registry.js");
@@ -42,6 +43,10 @@ var semantic_cache_js_1 = require("./cache/semantic-cache.js");
 Object.defineProperty(exports, "SemanticCache", { enumerable: true, get: function () { return semantic_cache_js_1.SemanticCache; } });
 var checkpoint_store_js_1 = require("./checkpoint/checkpoint-store.js");
 Object.defineProperty(exports, "CheckpointStore", { enumerable: true, get: function () { return checkpoint_store_js_1.CheckpointStore; } });
+var cost_controller_js_1 = require("./cost/cost-controller.js");
+Object.defineProperty(exports, "CostController", { enumerable: true, get: function () { return cost_controller_js_1.CostController; } });
+var tracer_js_2 = require("./observability/tracer.js");
+Object.defineProperty(exports, "calculateCost", { enumerable: true, get: function () { return tracer_js_2.calculateCost; } });
 var skills_loader_js_1 = require("./skills-loader.js");
 Object.defineProperty(exports, "SkillsLoader", { enumerable: true, get: function () { return skills_loader_js_1.SkillsLoader; } });
 var indexer_js_1 = require("./context/indexer.js");

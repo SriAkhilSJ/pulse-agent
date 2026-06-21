@@ -1,4 +1,5 @@
 import type { Trace, StepTrace } from '@pulse-ide/shared';
+export declare function calculateCost(model: string, tokensIn: number, tokensOut: number): number;
 export declare class Tracer {
     private currentTrace;
     private langSmithApiKey;

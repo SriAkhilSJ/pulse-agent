@@ -183,3 +183,5 @@ export type { Trace, StepTrace, CachedResponse, CacheConfig } from './observabil
 export { getDefaultCacheConfig } from './observability.types';
 export type { Checkpoint, CheckpointMessage, CheckpointFileChange, CheckpointConfig } from './checkpoint.types';
 export { getDefaultCheckpointConfig } from './checkpoint.types';
+export type { CostConfig, CostState, CostCheckResult } from './cost.types';
+export { getDefaultCostConfig } from './cost.types';

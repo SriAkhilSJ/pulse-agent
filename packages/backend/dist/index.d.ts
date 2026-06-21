@@ -13,6 +13,8 @@ export { DockerSandbox, isDockerAvailable } from './sandbox/docker-sandbox.js';
 export { Tracer, tracer } from './observability/tracer.js';
 export { SemanticCache } from './cache/semantic-cache.js';
 export { CheckpointStore } from './checkpoint/checkpoint-store.js';
+export { CostController } from './cost/cost-controller.js';
+export { calculateCost } from './observability/tracer.js';
 export { SkillsLoader } from './skills-loader.js';
 export { ContextEngine } from './context/indexer.js';
 export { ContextCompressor } from './context/compressor.js';
