@@ -3,6 +3,7 @@
 
 import {
   readFileTool, writeFileTool, listFilesTool, editFileTool, searchCodeTool, clearReadCache,
+  batchReadTool,
 } from './file/file-tools.js';
 import { runTerminalTool, detectTerminalProfile, getShellInfo } from './terminal/terminal-tools.js';
 import { webSearchTool, webFetchTool } from './web-tools.js';
@@ -22,7 +23,7 @@ import { initBrowserTools } from './browser-tool.js';
 
 export const ALL_TOOLS = [
   // File tools
-  readFileTool, writeFileTool, listFilesTool, editFileTool, searchCodeTool, clearReadCache,
+  readFileTool, writeFileTool, listFilesTool, editFileTool, searchCodeTool, clearReadCache, batchReadTool,
   // Terminal tools
   runTerminalTool, detectTerminalProfile, getShellInfo,
   // Web tools

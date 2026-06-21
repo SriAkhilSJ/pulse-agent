@@ -104,3 +104,30 @@ export const clearReadCache = defineTool('clear_read_cache', 'Clear the file rea
   fileCache.clear();
   return 'Cache cleared';
 });
+
+// Batch read multiple files in parallel — reduces latency for multi-file operations
+export const batchReadTool = defineTool('batch_read_files', 'Read multiple files in parallel (faster than sequential reads)', {
+  type: 'object',
+  properties: {
+    paths: { type: 'array', items: { type: 'string' }, description: 'Array of file paths to read' },
+  },
+  required: ['paths'],
+}, async (args) => {
+  const paths = args.paths as string[];
+  const results = await Promise.all(
+    paths.map(async (filePath: string) => {
+      const cached = fileCache.get(filePath);
+      if (cached && Date.now() - cached.timestamp < 30000) {
+        return { path: filePath, content: cached.content, cached: true };
+      }
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        fileCache.set(filePath, { content, timestamp: Date.now() });
+        return { path: filePath, content, cached: false };
+      } catch (err) {
+        return { path: filePath, content: `Error: ${(err as Error).message}`, error: true };
+      }
+    })
+  );
+  return JSON.stringify(results, null, 2);
+});
