@@ -38,7 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path = __importStar(require("path"));
 const ipc_handlers_js_1 = require("./ipc-handlers.js");
-const __dirname = path.dirname(__filename);
+// __dirname is already available in CommonJS (Node.js)
 let mainWindow = null;
 function createWindow() {
     mainWindow = new electron_1.BrowserWindow({

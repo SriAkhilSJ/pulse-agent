@@ -5,7 +5,7 @@ import { app, BrowserWindow, Menu, ipcMain } from 'electron';
 import * as path from 'path';
 import { registerIpcHandlers } from './ipc-handlers.js';
 
-const __dirname = path.dirname(__filename);
+// __dirname is already available in CommonJS (Node.js)
 
 let mainWindow: BrowserWindow | null = null;
 
