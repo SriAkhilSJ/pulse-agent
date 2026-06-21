@@ -1,1 +1,0 @@
-{"version":3,"file":"compressor.d.ts","sourceRoot":"","sources":["../../src/context/compressor.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,mBAAmB,CAAC;AAGjD,qBAAa,iBAAiB;IAC5B,OAAO,CAAC,iBAAiB,CAAc;IAEvC;;;OAGG;IACH,QAAQ,CAAC,QAAQ,EAAE,OAAO,EAAE,GAAG,OAAO,EAAE;IAuCxC,KAAK,IAAI,IAAI;CAGd"}
