@@ -400,6 +400,18 @@ export function startServer() {
     console.log(`[PulseCode] Health check: http://${HOST}:${PORT}`);
   });
 
+  // Handle EADDRINUSE by retrying after a delay
+  httpServer.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`[PulseCode] Port ${PORT} in use, retrying in 2s...`);
+      setTimeout(() => {
+        httpServer.listen(PORT, HOST);
+      }, 2000);
+    } else {
+      console.error('[PulseCode] Server error:', err);
+    }
+  });
+
   // Graceful shutdown
   process.on('SIGINT', () => {
     console.log('\n[PulseCode] Shutting down...');
