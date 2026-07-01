@@ -1,0 +1,27 @@
+[package]
+name = "surpassing-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+description = "Core types, errors, and utilities for the Surpassing IDE Agent"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.8", features = ["v4", "serde"] }
+smol_str = "0.2"
+
+[dev-dependencies]
+tokio-test = "0.4"

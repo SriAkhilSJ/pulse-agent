@@ -1,0 +1,45 @@
+# Pulse Agent — Model Registry
+# Each agent reads this to pick the best model for its role
+# Capabilities: reasoning, code, analysis, fast, cheap, long_context
+
+models:
+  - id: openrouter/free
+    provider: openrouter
+    context_window: 128000
+    max_output_tokens: 4096
+    cost_per_1k_input: 0.0
+    cost_per_1k_output: 0.0
+    capabilities: [fast, cheap, reasoning, code, analysis, long_context]
+
+  - id: auto/best-reasoning
+    provider: omniroute
+    context_window: 512000
+    max_output_tokens: 512000
+    cost_per_1k_input: 0.0
+    cost_per_1k_output: 0.0
+    capabilities: [reasoning, analysis]
+
+  - id: auto/fast
+    provider: omniroute
+    context_window: 512000
+    max_output_tokens: 512000
+    cost_per_1k_input: 0.0
+    cost_per_1k_output: 0.0
+    capabilities: [fast, cheap, reasoning, code, analysis, long_context]
+
+  - id: auto/best-fast
+    provider: omniroute
+    context_window: 512000
+    max_output_tokens: 512000
+    cost_per_1k_input: 0.0
+    cost_per_1k_output: 0.0
+    capabilities: [fast, cheap]
+
+  - id: auto/cheap
+    provider: omniroute
+    context_window: 512000
+    max_output_tokens: 512000
+    cost_per_1k_input: 0.0
+    cost_per_1k_output: 0.0
+    capabilities: [cheap, fast]
+

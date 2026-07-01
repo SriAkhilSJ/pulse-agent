@@ -1,0 +1,52 @@
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.eggs/
+*.egg
+/.pytest_cache/
+/.mypy_cache/
+/.ruff_cache/
+
+# TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pulse runtime
+memory/
+logs/
+*.log
+data/
+
+# Binary/temp files
+.hermes-tmp*/
+.nul
+.continue-src/
+*.db
+
+# Secrets
+.env
+.env.local
+secrets/
